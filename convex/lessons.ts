@@ -28,6 +28,10 @@ export const generate = action({
       if (args.kind === 'card') {
         if (!['title', 'body', 'example'].every(k => typeof data[k] === 'string' && data[k].trim().length && data[k].length < 1200)) throw new Error('Invalid card');
       } else if (!Array.isArray(data.questions) || data.questions.length !== 3 || !data.questions.every((q: any) => typeof q.question === 'string' && typeof q.explanation === 'string' && Array.isArray(q.options) && q.options.length === 3 && q.options.every((s: any) => typeof s === 'string') && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < 3)) throw new Error('Invalid quiz');
+      if (args.kind === 'card') {
+        try { data.imageUrl = await ctx.runQuery(internal.illustrationStore.get, { index: args.index }); }
+        catch { data.imageUrl = null; }
+      }
       return { data };
     } catch {
       // Never return or log SDK errors: they may contain request credentials.
