@@ -4,6 +4,7 @@ import { ConvexProvider, ConvexReactClient } from 'convex/react';
 import { useAction } from 'convex/react';
 import { api } from '../convex/_generated/api';
 import './style.css';
+import Activity from './Activity';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 
@@ -27,6 +28,7 @@ function App() {
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const lock = useRef(false);
@@ -55,14 +57,14 @@ function App() {
     <header><a className="wordmark" href="/" aria-label="HowAI home">How<span>AI</span><i>✦</i></a><span className="edition">A LITTLE WISER, EVERY SWIPE</span></header>
     <section className="intro"><span className="eyebrow">YOUR FIRST CHAPTER</span><h1>Big ideas.<br/><em>Small adventures.</em></h1><p>Meet AI, one little “aha!” at a time.</p></section>
     <section className="lesson" aria-label="What is AI lesson">
-      <div className="lesson-top"><span className="pill">01 · WHAT IS AI?</span><span>{quiz ? 'QUICK CHECK' : `${card ? index + 1 : 0} / 5 CARDS`}</span></div>
+      <div className="lesson-top"><span className="pill">01 · WHAT IS AI?</span><span>{showActivity ? 'TRY IT YOURSELF' : quiz ? 'QUICK CHECK' : `${card ? index + 1 : 0} / 5 CARDS`}</span></div>
       <div className="progress" aria-label={`${quiz ? 5 : card ? index + 1 : 0} of 5 cards`} >{[0,1,2,3,4].map(i => <span key={i} className={quiz || (card && i <= index) ? 'filled' : ''}/>)}</div>
       <div className="guide"><Mascot/><div><strong>Kiko</strong><span>Your curious little guide</span></div><span className="spark">✧</span></div>
       {error && <div className="error" role="alert">{error}</div>}
       <div aria-live="polite" className="status">{busy ? 'Kiko is thinking…' : ''}</div>
-      {quiz ? <section className="bubble quiz"><span className="eyebrow">TIME FOR AN AHA! CHECK</span><h2>{submitted ? `${score} out of 3. Keep that curiosity!` : 'What stuck with you?'}</h2><p>Three tiny questions. You’ve got this.</p>
+      {showActivity ? <Activity visitor={visitor} onReview={() => { setShowActivity(false); setQuiz(null); setIndex(0); setError(''); }}/> : quiz ? <section className="bubble quiz"><span className="eyebrow">TIME FOR AN AHA! CHECK</span><h2>{submitted ? `${score} out of 3. Keep that curiosity!` : 'What stuck with you?'}</h2><p>Three tiny questions. You’ve got this.</p>
         {quiz.map((q, i) => <fieldset key={i} disabled={submitted}><legend>{i + 1}. {q.question}</legend>{q.options.map((option, j) => <label className={`option ${submitted && j === q.answer ? 'correct' : submitted && answers[i] === j ? 'incorrect' : ''}`} key={j}><input type="radio" name={`q${i}`} checked={answers[i] === j} onChange={() => setAnswers(a => ({ ...a, [i]: j }))}/><span>{option}</span></label>)}{submitted && <p className="feedback">{answers[i] === q.answer ? '✓ Correct! ' : `Correct answer: ${q.options[q.answer]}. `}{q.explanation}</p>}</fieldset>)}
-        {!submitted ? <button className="primary" disabled={Object.keys(answers).length !== 3} onClick={() => setSubmitted(true)}>Check my answers →</button> : <button className="primary" onClick={() => { setQuiz(null); setIndex(0); setError(''); }}>Review the cards ↺</button>}
+        {!submitted ? <button className="primary" disabled={Object.keys(answers).length !== 3} onClick={() => setSubmitted(true)}>Check my answers →</button> : <><button className="primary" onClick={() => setShowActivity(true)}>Try the activity →</button><button className="activity-skip" onClick={() => { setQuiz(null); setIndex(0); setError(''); }}>Review the cards ↺</button></>}
       </section> : <>
         <article className="bubble card" aria-busy={busy} onTouchStart={e => { touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }} onTouchEnd={e => { if (!touch.current || !card || busy) return; const dx = e.changedTouches[0].clientX - touch.current.x; const dy = e.changedTouches[0].clientY - touch.current.y; touch.current = null; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) dx < 0 ? next() : back(); }}>
           <span className="eyebrow">{card ? card.level < 0 ? 'LET’S MAKE IT CLICK' : card.level > 0 ? 'A LITTLE DEEPER' : 'A NEW LITTLE DISCOVERY' : 'A NEW ADVENTURE AWAITS'}</span>

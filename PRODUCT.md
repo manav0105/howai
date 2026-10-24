@@ -14,3 +14,14 @@ It will be an app for learning AI for different levels of learners, it adapts to
 - Only a visitor ID is kept in browser storage; learning progress and quiz answers are not saved. The server stores daily usage counts, not lessons or quiz answers.
 - Verified: production card and quiz generation, build, automated UI interactions including swipes and quiz scoring, and rejection of call 31. No browser is available in this session, so visual/mobile browser checks remain manual.
 - No login, badges, onboarding, activities or saved learning progress. The roadmap above remains future work.
+
+## Next roadmap item — hands-on activity — done
+
+- Live at https://small-retriever-78.convex.site.
+- After the three-question quiz, Try the activity opens one shared 5–10 minute activity for What is AI, using Gemini's free web text chat on a phone or laptop. A Google sign-in may be needed.
+- Gemini generates the activity inside a Convex action; Convex saves one activity for the lesson and reuses it for every learner. Simultaneous requests cannot overwrite the saved activity.
+- Done marks the activity complete for this visit and shows the lesson ending. Skip marks it skipped for this visit and moves to the lesson ending. Neither status is saved.
+- I need help opens a small Gemini hint chat restricted to the saved activity. Hints run inside a Convex action, have a 300-output-token cap, and share the existing 30-call daily allowance. Chat history stays in memory for this visit only.
+- Clear errors and retry controls appear if activity generation or hints fail. Failed hint requests preserve the question.
+- Cards, Kiko, quiz, and the illustration fallback remain working. No onboarding, badges or saved learner progress added.
+- Verified: production generation, identical saved activity for two visitors, live hint replies and rejection of unrelated requests; automated tests for Done, help, Skip, retries, cards, quiz and image fallback. A real browser was unavailable for visual checks.
