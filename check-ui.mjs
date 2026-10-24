@@ -18,7 +18,7 @@ dom.window.testAction = async (path, args) => {
 dom.window.testGenerate = async args => {
   calls.push(args);
   if (fail) return { error: 'Test generation failed. Try again.' };
-  return { data: args.kind === 'quiz' ? { questions: [0,1,2].map(i => ({ question: `Question ${i}`, options: ['Yes','No','Maybe'], answer: 0, explanation: 'Test explanation' })) } : { title: `Card ${args.index} level ${args.level}`, body: 'A short lesson.', example: 'A short example.', imageUrl: args.index === 0 ? 'https://howai.test/shared-card-0.webp' : null } };
+  return { data: args.kind === 'quiz' ? { questions: [0,1,2].map(i => ({ question: `Question ${i}`, options: ['Yes','No','Maybe'], answer: 0, explanation: 'Test explanation' })) } : { title: `Card ${args.index} level ${args.level}`, body: `A short ${args.topic} lesson.`, example: 'A short example.', imageUrl: args.index === 0 ? 'https://howai.test/shared-card-0.webp' : null }, metadata: { topic: args.topic, generatedAt: Date.now(), sources: [{ title: 'Official source', url: 'https://ai.google.dev/' }], suggestions: [], warning: 'Search unavailable; this lesson may be out of date.' } };
 };
 const bundled = await build({ entryPoints: ['src/main.jsx'], bundle: true, write: false, format: 'iife', define: { 'import.meta.env.VITE_CONVEX_URL': '"https://test.convex.cloud"', 'process.env.NODE_ENV': '"production"' }, loader: { '.css': 'empty' }, plugins: [{ name: 'mock-server', setup(b) {
   b.onResolve({ filter: /^convex\/react$/ }, () => ({ path: 'convex', namespace: 'mock' }));
@@ -30,13 +30,17 @@ const text = () => dom.window.document.body.textContent;
 const button = label => [...dom.window.document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith(label));
 async function click(label) { const b = button(label); assert.ok(b && !b.disabled, label); b.click(); await tick(); }
 await tick();
-await click('Let’s learn'); assert.match(text(), /Card 0 level 0/);
+assert.equal(dom.window.document.querySelectorAll('.topic-grid button').length, 16);
+await click('General AI'); assert.match(text(), /Card 0 level 0/);
+assert.equal(dom.window.localStorage.getItem('howai-last-topic'), 'general-ai');
+assert.match(text(), /may be out of date/);
+assert.equal(dom.window.document.querySelector('.source-notes a').href, 'https://ai.google.dev/');
 const imageUrl = dom.window.document.querySelector('.example-image').src;
 assert.equal(dom.window.document.querySelector('.example-image').nextElementSibling.textContent, 'A short example.');
 await click("Didn't get it"); assert.equal(calls.at(-1).level, -1); assert.match(text(), /Card 0 level -1/);
 assert.equal(dom.window.document.querySelector('.example-image').src, imageUrl);
-await click('Go deeper'); assert.equal(calls.at(-1).level, 0);
-await click('Go deeper'); assert.equal(calls.at(-1).level, 1);
+await click('Deep dive'); assert.equal(calls.at(-1).level, 0);
+await click('Deep dive'); assert.equal(calls.at(-1).level, 1);
 assert.equal(dom.window.document.querySelector('.example-image').src, imageUrl);
 dom.window.document.querySelector('.example-image').dispatchEvent(new dom.window.Event('error'));
 assert.ok(dom.window.document.querySelector('.example-image').hidden);
@@ -76,6 +80,17 @@ for(const field of dom.window.document.querySelectorAll('fieldset')) { field.que
 await click('Check my answers'); await click('Try the activity'); await click('Skip');
 assert.match(text(), /Activity skipped/); assert.match(text(), /Marked skipped/);
 assert.equal(activityCalls.filter(c => c.path === 'activities:hint').length, 2);
-assert.equal(dom.window.localStorage.length,1);
-console.log('PASS: cards, image fallback/reuse, swipes, quiz, activity retry, hint chat/retry, Done, Skip, review, visitor-only storage.');
+assert.ok(calls.every(c => c.topic === 'general-ai'));
+assert.ok(activityCalls.every(c => c.args.topic === 'general-ai'));
+await click('← Change topic');
+assert.match(dom.window.document.querySelector('.last-topic').textContent, /General AI/);
+await click('Coding'); assert.match(text(), /A short coding lesson/);
+assert.equal(calls.at(-1).topic, 'coding');
+assert.equal(dom.window.localStorage.getItem('howai-last-topic'), 'coding');
+assert.equal(dom.window.localStorage.length,2);
+await click('← Change topic'); await click('Excel and spreadsheets');
+assert.match(text(), /A short spreadsheets lesson/);
+assert.equal(calls.at(-1).topic, 'spreadsheets');
+assert.ok(!text().includes('A short coding lesson'));
+console.log('PASS: 16 topics, last-topic memory, topic isolation, source links/staleness note, cards, image fallback/reuse, swipes, quiz, activity retry, hint chat/retry, Done, Skip, review; no saved progress.');
 dom.window.close();

@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAction } from 'convex/react';
 import { api } from '../convex/_generated/api';
+import SourceNotes from './SourceNotes';
 
-export default function Activity({ visitor, onReview }) {
+export default function Activity({ visitor, topic, onReview }) {
   const getActivity = useAction(api.activities.get);
   const getHint = useAction(api.activities.hint);
   const [activity, setActivity] = useState(null);
@@ -13,6 +14,7 @@ export default function Activity({ visitor, onReview }) {
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState('');
   const [sending, setSending] = useState(false);
+  const [metadata, setMetadata] = useState(null);
   const lock = useRef(false);
   const hintLock = useRef(false);
   const started = useRef(false);
@@ -20,9 +22,9 @@ export default function Activity({ visitor, onReview }) {
     if (lock.current) return;
     lock.current = true; setLoading(true); setError('');
     try {
-      const result = await getActivity({ visitor });
+      const result = await getActivity({ visitor, topic });
       if (result.error) setError(result.error);
-      else setActivity(result.data);
+      else { setActivity(result.data); setMetadata(result.metadata || null); }
     } catch { setError('Could not reach the activity server. Check your connection and try again.'); }
     finally { lock.current = false; setLoading(false); }
   }
@@ -33,9 +35,9 @@ export default function Activity({ visitor, onReview }) {
     hintLock.current = true; setSending(true); setError('');
     const message = question.trim();
     try {
-      const result = await getHint({ visitor, message, history: messages.slice(-6).map(m => ({ role: m.role, text: m.text })) });
+      const result = await getHint({ visitor, topic, message, history: messages.slice(-6).map(m => ({ role: m.role, text: m.text })) });
       if (result.error) setError(result.error);
-      else { setMessages(old => [...old, { role: 'user', text: message }, { role: 'model', text: result.text }]); setQuestion(''); }
+      else { setMessages(old => [...old, { role: 'user', text: message }, { role: 'model', text: result.text }]); setQuestion(''); if (result.metadata) setMetadata(result.metadata); }
     } catch { setError('Could not reach the hint server. Your question is still here; please try again.'); }
     finally { hintLock.current = false; setSending(false); }
   }
@@ -54,6 +56,7 @@ export default function Activity({ visitor, onReview }) {
       <div className="activity-buttons"><button className="primary" disabled={sending} onClick={() => setStatus('done')}>Done</button><button disabled={sending} onClick={() => setHelp(true)} aria-expanded={help} aria-controls="activity-help">I need help</button><button disabled={sending} onClick={() => setStatus('skipped')}>Skip</button></div>
       {help && <section id="activity-help" className="activity-help" aria-label="Activity hints"><h3>A little hint from Kiko</h3><p>Ask about a step in this activity.</p><div className="hint-messages" aria-live="polite">{messages.map((m, i) => <p key={i} className={m.role === 'user' ? 'hint-user' : 'hint-kiko'}><strong>{m.role === 'user' ? 'You' : 'Kiko'}:</strong> {m.text}</p>)}{sending && <p role="status">Kiko is thinking…</p>}</div><form onSubmit={send}><label htmlFor="hint-question">Where are you stuck?</label><textarea id="hint-question" rows="2" maxLength={800} value={question} disabled={sending} onChange={e => setQuestion(e.target.value)} placeholder="How do I change one detail in the prompt?"/><button className="primary" disabled={sending || !question.trim()} type="submit">{sending ? 'Getting a hint…' : 'Send'}</button></form></section>}
       <p className="activity-note">Completion and hint chat stay in this visit only.</p>
+      <SourceNotes metadata={metadata}/>
     </>}
   </section>;
 }

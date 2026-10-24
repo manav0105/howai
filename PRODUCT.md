@@ -25,3 +25,15 @@ It will be an app for learning AI for different levels of learners, it adapts to
 - Clear errors and retry controls appear if activity generation or hints fail. Failed hint requests preserve the question.
 - Cards, Kiko, quiz, and the illustration fallback remain working. No onboarding, badges or saved learner progress added.
 - Verified: production generation, identical saved activity for two visitors, live hint replies and rejection of unrelated requests; automated tests for Done, help, Skip, retries, cards, quiz and image fallback. A real browser was unavailable for visual checks.
+
+## Topic picker — done
+
+- Start screen offers General AI plus Coding, Writing, Excel and spreadsheets, Research and studying, Image design, Video, Marketing, Content creation, Business, Data analysis, Productivity, Career, Finance, Customer support, and Automation.
+- Only the last topic picked is remembered on the device. No login or saved learner progress.
+- Opening a topic prepares five topic-specific cards, a three-question quiz and one hands-on activity inside Convex actions. The complete lesson is saved once and reused for everyone; simultaneous visitors cannot overwrite it. Failed preparation shows a clear error and can be retried.
+- Every new content request enables Gemini Google Search grounding first, stores returned source links and search suggestions, and shows them under Sources & freshness. If grounding fails or returns no sources, stable fallback content is shown with an explicit warning that it may be out of date.
+- Lessons regenerate when opened after 30 days. If refresh fails, an existing lesson remains available with a stale-content warning. Newly refreshed cards, quiz and activity are saved together; difficulty variants are cached separately for that lesson version.
+- Cards, examples, quiz, activity and hint chat use only the selected topic. The same simpler/deeper buttons, Kiko, swipes, activity controls and text-only image fallback remain. Existing General AI illustrations are never applied to unrelated topics.
+- All Gemini requests stay server-side, retain the 300-output-token cap and share the existing 30-call daily visitor allowance. Cached content costs no Gemini calls.
+- Live checks passed for General AI, Coding, Excel and spreadsheets, and Finance: all five cards, quiz, activity and reuse across visitors. Coding difficulty changes and activity hints were checked, including refusal of a request to switch topics. Google Search requests currently return HTTP 429; the visible outdated-content fallback was verified.
+- Automated tests passed for all 16 picker choices, remembering the last topic, isolation between topics, source links, grounding success/failure, the 30-day boundary and refresh, cached reuse, cards, quiz, activities and image fallback. No real browser is available in this session; visual mobile checks remain manual.

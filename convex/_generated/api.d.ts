@@ -15,6 +15,10 @@ import type * as http from "../http.js";
 import type * as illustrationStore from "../illustrationStore.js";
 import type * as illustrations from "../illustrations.js";
 import type * as lessons from "../lessons.js";
+import type * as topicContent from "../topicContent.js";
+import type * as topicMaintenance from "../topicMaintenance.js";
+import type * as topicModel from "../topicModel.js";
+import type * as topicStore from "../topicStore.js";
 import type * as usage from "../usage.js";
 
 import type {
@@ -31,6 +35,10 @@ declare const fullApi: ApiFromModules<{
   illustrationStore: typeof illustrationStore;
   illustrations: typeof illustrations;
   lessons: typeof lessons;
+  topicContent: typeof topicContent;
+  topicMaintenance: typeof topicMaintenance;
+  topicModel: typeof topicModel;
+  topicStore: typeof topicStore;
   usage: typeof usage;
 }>;
 

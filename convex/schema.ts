@@ -1,8 +1,11 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import { activityData } from './activityModel';
+import { cardData, lessonData, sourceData } from './topicModel';
 
 export default defineSchema({
+  topicLessons: defineTable({ topic: v.string(), owner: v.string(), leaseUntil: v.number(), generatedAt: v.optional(v.number()), content: v.optional(lessonData), sources: v.array(sourceData), suggestions: v.array(v.string()), ungrounded: v.boolean() }).index('by_topic', ['topic']),
+  topicVariants: defineTable({ topic: v.string(), version: v.number(), index: v.number(), level: v.number(), data: cardData, sources: v.array(sourceData), suggestions: v.array(v.string()), ungrounded: v.boolean() }).index('by_card', ['topic', 'version', 'index', 'level']),
   lessonActivities: defineTable({
     lesson: v.string(), owner: v.string(), leaseUntil: v.number(),
     data: v.optional(activityData),
