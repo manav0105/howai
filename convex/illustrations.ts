@@ -19,9 +19,9 @@ export const generateOnce = internalAction({
       if (!process.env.GEMINI_API_KEY) throw new Error('Missing image key');
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, httpOptions: { timeout: 120000, retryOptions: { attempts: 1 } } });
       const response = await ai.models.generateContent({
-        model: 'gemini-nano-banana-2.1',
+        model: 'gemini-2.5-flash-image',
         contents: `Create one soft anime educational illustration of this exact scene: ${source}\nMatch a friendly cream and lavender learning app: warm cream #fff6df, pale lavender #c4afff, muted purple #b296f7, dark plum outlines #30234d, tiny blush accents. Soft cel shading, gentle light, simple clean composition, landscape 4:3. The guide Kiko is a tiny cream cat-like mascot with lavender triangular ears and hair tuft, large dark oval eyes and blush cheeks; include only if natural to the scene. NO text, letters, numbers, captions, watermarks, logos or readable screen interfaces. Depict the idea visually with unbranded objects.`,
-        config: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: '4:3', imageSize: '1K' } },
+        config: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: '4:3' } },
       });
       const image = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.mimeType?.startsWith('image/') && p.inlineData.data)?.inlineData;
       if (!image?.data) throw new Error('No image returned');

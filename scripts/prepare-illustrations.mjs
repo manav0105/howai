@@ -16,18 +16,20 @@ function run(path, args) {
 }
 
 const existing = await run('illustrationStore:report', {});
+// Read saved canonical cards directly; never create or refresh lesson data here.
+const lesson = await run('topicStore:read', { topic: 'general-ai' });
+if (lesson?.content?.cards?.length !== 5) throw new Error('Five saved canonical cards are required');
 await Promise.all(Array.from({ length: 5 }, async (_, index) => {
+  const source = lesson.content.cards[index].example;
   const row = existing.find(row => row.index === index);
   if (row) {
     if (row.status === 'failed' && process.argv.includes('--retry-failed')) {
-      const result = await run('illustrations:generateOnce', { index, source: row.source, retryFailed: true });
+      const result = await run('illustrations:generateOnce', { index, source, retryFailed: true });
       console.log(`Card ${index + 1}: ${result.status}${result.code ? ` (HTTP ${result.code})` : ''}${result.bytes ? ` (${result.bytes} bytes)` : ''}`);
     }
     return;
   }
-  const card = await run('lessons:generate', { visitor: '00000000-0000-4000-a000-000000000050', kind: 'card', index, level: 0 });
-  if (!card.data?.example) throw new Error(`Could not prepare card ${index + 1}`);
-  const result = await run('illustrations:generateOnce', { index, source: card.data.example });
+  const result = await run('illustrations:generateOnce', { index, source });
   console.log(`Card ${index + 1}: ${result.status}${result.code ? ` (HTTP ${result.code})` : ''}${result.bytes ? ` (${result.bytes} bytes)` : ''}`);
 }));
 const report = await run('illustrationStore:report', {});

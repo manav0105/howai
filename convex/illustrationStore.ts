@@ -7,8 +7,8 @@ export const claim = internalMutation({
     const row = await ctx.db.query('cardIllustrations').withIndex('by_index', q => q.eq('index', args.index)).unique();
     if (row) {
       if (!retryFailed || row.status !== 'failed') return null;
-      await ctx.db.patch(row._id, { status: 'generating' });
-      return { id: row._id, source: row.source };
+      await ctx.db.patch(row._id, { status: 'generating', source: args.source });
+      return { id: row._id, source: args.source };
     }
     return { id: await ctx.db.insert('cardIllustrations', { ...args, status: 'generating' }), source: args.source };
   },
